@@ -54,6 +54,7 @@ const api: DesktopApi = {
   saveProducts: (products) => call('products:save', products),
   saveShop: (input) => call('shops:save', input),
   installTemplates: (productId) => call('shops:install-templates', productId),
+  categories: (input) => call('categories:query', input),
   bindInstallTemplate: (productId, template) =>
     call('shops:bind-template', { productId, template }),
   loginShop: (input) => call('shops:login', input),

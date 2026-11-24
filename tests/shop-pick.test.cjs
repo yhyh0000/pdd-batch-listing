@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { pickShop } = require('../dist-electron/electron/shop-pick.js');
+const { pickShop, pickProductShop } = require('../dist-electron/electron/shop-pick.js');
 
 const shop = (id, name) => ({
   id,
@@ -34,4 +34,19 @@ test('只有一个店铺时留空就直接用它，多店铺留空要报错', ()
   assert.throws(() => pickShop([only, shop('shop-b', '另一个')], ''), /没写「目标店铺」/);
   assert.throws(() => pickShop([], '任意'), /还没有添加店铺/);
   assert.throws(() => pickShop([shop('shop-a', '甲店')], '乙店'), /找不到店铺「乙店」/);
+});
+
+test('商品绑定的店铺 ID 优先于资料里的名称，店铺改名也不受影响', () => {
+  const shops = [
+    { id: 'a', name: '甲店', account: '甲:一', platform: 'pdd' },
+    { id: 'b', name: '乙店', account: '乙:二', platform: 'pdd' },
+  ];
+  // 绑定 b，但资料里的名称还写着「甲店」——以绑定为准，避免改名/手误串店
+  assert.equal(pickProductShop(shops, { shopId: 'b', expectedShop: '甲店' }).id, 'b');
+  // 没绑定才按名称解析
+  assert.equal(pickProductShop(shops, { shopId: '', expectedShop: '甲店' }).id, 'a');
+  // 绑定的店铺已删除 → 回退名称解析
+  assert.equal(pickProductShop(shops, { shopId: 'gone', expectedShop: '乙店' }).id, 'b');
+  // 绑定的店铺已删除且名称也对不上 → 明确报错，不猜
+  assert.throws(() => pickProductShop(shops, { shopId: 'gone', expectedShop: '丙店' }), /找不到店铺/);
 });

@@ -573,9 +573,15 @@ export function Recognition({
                         <p className="quiet-note">可留空，选店后确认品牌及资质。</p>
                       ) : null}
                       {key === 'category' ? (
-                        <p className="quiet-note">
-                          只需填写最后一级类目；填写完整路径时，也按最后一级匹配。
-                        </p>
+                        <>
+                          <p className="quiet-note">
+                            只需填写最后一级类目；填写完整路径时，也按最后一级匹配。
+                          </p>
+                          <CategoryField
+                            value={typeof p.category === 'string' ? p.category : ''}
+                            onChange={(path) => field('category', path)}
+                          />
+                        </>
                       ) : null}
                     </label>
                   ))}
@@ -1637,6 +1643,8 @@ export function ShopEditor({
     </>
   );
 }
+import { CategoryField } from './CategoryPicker';
+
 export function ShopPicker({
   shops,
   count,
@@ -1652,11 +1660,17 @@ export function ShopPicker({
   encryptionAvailable: boolean;
   onShopSaved: (id: string) => Promise<void>;
 }) {
-  const [chosen, setChosen] = useState('');
+  const [chosen, setChosen] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
-  const chosenMeta = platformMeta(shops.find((shop) => shop.id === chosen)?.platform);
+  const [running, setRunning] = useState({ index: 0, total: 0, name: '' });
+  const firstShop = shops.find((shop) => shop.id === chosen[0]);
+  const chosenMeta = platformMeta(firstShop?.platform);
+  const blocked = chosen.find((id) => {
+    const meta = platformMeta(shops.find((shop) => shop.id === id)?.platform);
+    return !meta.enabled || !meta.draftPublishing;
+  });
   return (
     <>
       <Modal
@@ -1667,30 +1681,44 @@ export function ShopPicker({
         footer={
           <>
             <span className="footer-note">
-              {chosen && (!chosenMeta.enabled || !chosenMeta.draftPublishing)
-                ? !chosenMeta.enabled
-                  ? `${chosenMeta.label}暂未开放`
-                  : chosenMeta.draftPendingMessage
-                : '在已连接浏览器中填写，保存到后台草稿箱'}
+              {blocked
+                ? `${platformMeta(shops.find((shop) => shop.id === blocked)?.platform).label}暂未开放`
+                : chosen.length > 1
+                  ? '按勾选顺序依次执行；每家跑完会自动切换登录，任一家失败就停在该店'
+                  : '在已连接浏览器中填写，保存到后台草稿箱'}
             </span>
             <button
               className="button primary"
               disabled={
-                !chosen || busy || adding || !chosenMeta.enabled || !chosenMeta.draftPublishing
+                !chosen.length || busy || adding || Boolean(blocked)
               }
               onClick={async () => {
                 setBusy(true);
                 setError('');
                 try {
-                  await onPrepared(chosen);
+                  for (const [index, id] of chosen.entries()) {
+                    const name = shops.find((shop) => shop.id === id)?.name || id;
+                    setRunning({ index: index + 1, total: chosen.length, name });
+                    await onPrepared(id);
+                  }
+                  onClose();
                 } catch (e) {
-                  setError((e as Error).message);
+                  setError(
+                    `${running.total ? `第 ${running.index}/${running.total} 家（${running.name}）` : ''}${(e as Error).message}`,
+                  );
                 } finally {
                   setBusy(false);
+                  setRunning({ index: 0, total: 0, name: '' });
                 }
               }}
             >
-              {busy ? '启动中…' : '开始填写并保存草稿'}
+              {busy
+                ? running.total
+                  ? `第 ${running.index}/${running.total} 家：${running.name}`
+                  : '启动中…'
+                : chosen.length > 1
+                  ? `依次执行 ${chosen.length} 家店铺`
+                  : '开始填写并保存草稿'}
             </button>
           </>
         }
@@ -1714,16 +1742,19 @@ export function ShopPicker({
                 const shopMeta = platformMeta(shop.platform);
                 return (
                   <label
-                    className={`shop-option ${chosen === shop.id ? 'selected' : ''}`}
+                    className={`shop-option ${chosen.includes(shop.id) ? 'selected' : ''}`}
                     key={shop.id}
                   >
                     <input
-                      type="radio"
-                      name="target-shop"
+                      type="checkbox"
                       value={shop.id}
-                      checked={chosen === shop.id}
+                      checked={chosen.includes(shop.id)}
                       disabled={busy || !shopMeta.enabled || !shopMeta.draftPublishing}
-                      onChange={() => setChosen(shop.id)}
+                      onChange={(e) =>
+                        setChosen((old) =>
+                          e.target.checked ? [...old, shop.id] : old.filter((id) => id !== shop.id),
+                        )
+                      }
                     />
                     <div>
                       <strong>
@@ -1774,7 +1805,7 @@ export function ShopPicker({
           onClose={() => setAdding(false)}
           onSaved={async (id) => {
             await onShopSaved(id);
-            setChosen(id);
+            setChosen([id]);
           }}
         />
       ) : null}

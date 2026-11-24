@@ -33,6 +33,7 @@ import { templateShopProblem } from './pdd-template-guard';
 import { PDD_DISCOUNT_STATE, type DiscountPageFacts } from './pdd-discount';
 import { BrowserBridge, flatten } from '../browser-bridge';
 import { PddApiDraft, PDD_TEMPLATE_OPTIONS } from './pdd-api-draft';
+import { CategoryService } from '../category-service';
 import { ExecutionError, type ExecutionContext } from '../execution';
 import type { Product, Shop, Task, TaskStep, BackendCheck, ShopLoginEvent } from '../../src/types';
 import type { LoginPageFacts, PageFacts, PageRecovery, RecoveryResult } from '../agent-service';
@@ -507,6 +508,16 @@ export class PddAdapter {
     await this.bridge.navigate(href).catch(() => undefined);
   }
   /** 读后台「配送到店模板」下拉里的模板，给资料界面做成下拉选择。 */
+  private categoryService?: CategoryService;
+
+  /** 类目树：一级 / 子级 / 按 ID 反查全路径，全部走商家后台同源接口（见 category-service.ts）。 */
+  async categories(kind: 'roots' | 'children' | 'detail', id?: number) {
+    await this.bridge.connect();
+    this.categoryService = this.categoryService || new CategoryService(this.bridge);
+    if (kind === 'roots') return this.categoryService.roots();
+    if (kind === 'children') return this.categoryService.children(Number(id));
+    return this.categoryService.detail(Number(id));
+  }
   async installTemplates(
     shop: Shop,
     editUrls: string | string[] = [],

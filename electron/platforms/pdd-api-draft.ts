@@ -5,6 +5,7 @@ import { ExecutionError, type ExecutionContext } from '../execution';
 import { validateLocalImageFiles } from '../importer';
 import { isRecord, pddCategoryLeaf } from './pdd-page-scripts';
 import { PDD_ANCHOR_READ, PDD_LOGIN_MATCH } from './pdd-identity';
+import { capabilities } from './pdd-capabilities';
 import type { Product, Shop, Task, BackendCheck } from '../../src/types';
 import { rimDiameterLabel } from '../../src/pdd-rim';
 
@@ -872,8 +873,14 @@ export class PddApiDraft {
           ),
           '类目模板',
         );
-        if (Object.keys(record(template.spec_module, '类目规格模板')).length)
-          changed('当前API流程暂不支持绑定类目属性的规格模板');
+        const specModule = record(template.spec_module, '类目规格模板');
+        if (Object.keys(specModule).length)
+          // 类目只是「提供」规格模板，并不是必须先绑：多数店铺用自己的型号作规格。
+          // 不再硬停；真不匹配时，后面的草稿读回会逐项比对并报错。
+          context.patch(
+            {},
+            '该类目提供了可选的「规格模板」，本次仍按资料里的规格下发；若后台提示规格与模板不符，请在编辑页选一次模板后再继续',
+          );
         const properties = apiProperties(p, template);
         return { template, properties };
       },
@@ -990,6 +997,9 @@ export class PddApiDraft {
           changed('7天退货承诺与当前类目规则不同');
         const wantsInvoice = p.services?.invoice === '是';
         const invoice = apiInvoice(wantsInvoice, rules);
+        // 类目能提供什么，按规则键名族现算，不写死类目：轮胎没有发票位、手机必须开票都会各自落到
+        // unavailable / required，下面的分支因此只回答「能不能发」，不再回答「是不是我们没做」。
+        const caps = capabilities(rules, template);
         const services: Services = {
           refund,
           invoice: invoice.invoice,
@@ -1013,21 +1023,23 @@ export class PddApiDraft {
             {},
             `资料里${blank.join('、')}没填，已按当前类目规则取默认值（没有替你填成"否"）`,
           );
-        if (wantsInvoice && !invoice.offers)
+        if (wantsInvoice && caps.invoice === 'unavailable')
           context.patch(
             {},
             '当前类目的服务与承诺不提供正品发票，资料“正品发票=是”按不勾选执行；页面只有发货时间、7天无理由与假一赔十',
           );
         else if (services.invoice)
           changed(
-            '当前类目提供发票服务，但API流程尚未支持发票类型设置，请在后台手动选择发票类型后继续',
+            '当前类目提供发票服务，但API流程尚未支持发票类型设置，请在后台手动选择发票类型后继续（或把资料里的「正品发票」改成「否」）',
           );
-        if (rules.must_set_invoice === true && !wantsInvoice)
+        if (caps.invoice === 'required' && !wantsInvoice)
           changed('当前类目要求提供正品发票，资料未勾选');
         if (rules.is_must_fake_one_lose_ten === true && !services.authenticity)
           changed('当前类目要求假一赔十，资料未勾选');
         let installTemplateId: string | undefined;
-        if (p.install) {
+        if (p.install && caps.installService === 'unavailable')
+          context.patch({}, '当前类目没有「到店安装」入口，资料里的安装设置已跳过');
+        else if (p.install) {
           const typed = p.install.template.trim();
           if (!typed)
             changed(

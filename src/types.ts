@@ -65,6 +65,8 @@ export type Product = {
   shipping: string;
   freight: string;
   expectedShop: string;
+  /** 绑定的店铺记录 ID：执行时优先用它（店铺改名不受影响），留空才按 expectedShop 名称解析。 */
+  shopId?: string;
   demo: boolean;
   source: string;
   skus: Sku[];
@@ -373,6 +375,11 @@ export interface DesktopApi {
   saveShop(input: ShopInput): Promise<Workspace>;
   /** 读后台「配送到店模板」下拉里的模板，给界面做下拉用。 */
   installTemplates(productId: string): Promise<{ label: string; value: string }[]>;
+  /** 类目树：roots 一级、children 子级、detail 反查全路径（全部来自商家后台）。 */
+  categories(input: {
+    kind: 'roots' | 'children' | 'detail';
+    id?: number;
+  }): Promise<{ id: number; name: string; leaf: boolean }[] | { id: number; path: string; names: string[]; leaf: boolean } | undefined>;
   /** 把这件商品的模板记到店铺上，下次新建商品自动带。 */
   bindInstallTemplate(
     productId: string,

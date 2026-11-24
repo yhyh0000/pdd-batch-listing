@@ -5015,3 +5015,818 @@ summary:focus-visible,
   flex: none;
   gap: 8px;
 }
+
+/* 商品资料页 · 层级与密度收口（v3） */
+.import-options {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.import-option {
+  min-height: 76px;
+}
+.import-option:first-child .file-symbol {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.import-header h2,
+.library-heading h2 {
+  font-size: 14px;
+  font-weight: 500;
+}
+.steps {
+  color: var(--ink-3);
+}
+.steps li.current {
+  font-weight: 500;
+}
+.steps .step-line {
+  background: var(--rule);
+}
+.products-table .price {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.products-table thead th:nth-child(3) {
+  text-align: right;
+}
+.products-table .cell-detail {
+  display: block;
+  margin-top: 2px;
+}
+@media (max-width: 900px) {
+  .import-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 操作台层 · 商品资料（v4：表格当数据台） */
+.table-scroll {
+  max-height: 58vh;
+  overflow: auto;
+}
+.products-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.products-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--l2);
+  box-shadow: inset 0 -1px 0 var(--rule);
+}
+.products-table tbody td {
+  height: 40px;
+}
+.products-table tbody tr.selected td {
+  background: var(--brand-soft);
+}
+.products-table tbody tr.selected td:first-child {
+  box-shadow: inset 2px 0 0 var(--brand);
+}
+.ops-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.ops-statusbar strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* 操作台 · 底部操作栏吸底（v5） */
+.batch-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  background: var(--l1);
+  box-shadow: 0 -8px 16px -12px rgba(22, 24, 29, 0.35);
+}
+
+/* 操作台 · v6 修截图上三处硬伤 */
+.table-scroll {
+  padding-bottom: 88px;
+}
+.products-table thead th:first-child,
+.products-table tbody td:first-child {
+  width: 44px;
+  padding-right: 0;
+}
+.batch-bar .button:disabled {
+  color: var(--ink-3);
+  background: var(--l2);
+  border-color: var(--rule);
+}
+
+/* ---------- 操作台 · v7：首屏只留数据 ---------- */
+
+/* 步骤条吸顶收紧 */
+.steps {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  padding: 8px 0 10px;
+  margin-bottom: 10px;
+  background: var(--l0);
+}
+.steps li > span {
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+}
+
+/* 状态条压成一行 */
+.execution-banner {
+  padding: 8px 12px;
+}
+.execution-banner .execution-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+}
+.execution-banner .execution-line strong {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.execution-banner .execution-line span {
+  font-size: 12px;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.execution-banner .button {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+/* 已有商品时，导入区收成一条工具条 */
+.import-panel.is-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+}
+.import-panel.is-compact .import-header {
+  display: none;
+}
+.import-panel.is-compact .import-options {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+.import-panel.is-compact .import-option {
+  flex: none;
+  min-height: 32px;
+  padding: 6px 12px;
+}
+.import-panel.is-compact .import-option .file-symbol {
+  display: none;
+}
+.import-panel.is-compact .import-option div > span {
+  display: none;
+}
+.import-panel.is-compact .import-option > svg:last-child {
+  display: none;
+}
+.import-panel.is-compact .import-bottom {
+  margin: 0 0 0 auto;
+  padding: 0;
+}
+.import-panel.is-compact .import-bottom > span {
+  display: none;
+}
+
+/* 筛选与搜索同一行 */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filters .search {
+  margin-left: auto;
+  min-width: 240px;
+}
+
+/* 操作台 · v8：底部操作栏永远贴底 + 工具条不换行 */
+.products-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.products-page .library {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.products-page .batch-bar {
+  margin-top: auto;
+}
+.import-panel.is-compact .import-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+/* 模板下载只留一处，做成轻量文字链 */
+.template-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+.link-button {
+  appearance: none;
+  border: 0;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.link-button:hover:not(:disabled) {
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+.link-button:disabled {
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+
+/* 选择条：贴在表格上方，不再吸底 */
+.selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 2px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+.selection-bar > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.selection-bar strong {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.selection-bar span {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.selection-bar .button {
+  height: 30px;
+  flex: none;
+  padding: 0 14px;
+  font-size: 13px;
+}
+.selection-bar.active {
+  padding: 6px 12px;
+  border-bottom-color: transparent;
+  border-radius: var(--radius);
+  background: var(--brand-soft);
+}
+.selection-bar.active strong {
+  color: var(--brand);
+}
+.selection-bar.active span {
+  color: var(--ink-2);
+}
+
+/* 选择条：表头上方，未选中时保持安静，不吸底、不铺品牌色 */
+.pick-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 2px;
+  margin-bottom: 6px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+}
+.pick-bar > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pick-bar strong {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.pick-bar span {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.pick-bar .button {
+  height: 30px;
+  flex: none;
+  padding: 0 14px;
+  font-size: 13px;
+}
+.pick-bar.active {
+  padding: 6px 12px;
+  border-bottom-color: transparent;
+  border-radius: var(--radius);
+  background: var(--brand-soft);
+}
+.pick-bar.active strong {
+  color: var(--brand);
+}
+.pick-bar.active span {
+  color: var(--ink-2);
+}
+
+/* 表格行内操作：做成按钮，不是链接 */
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.row-action {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--l1);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.row-action:hover:not(:disabled) {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+.row-action:disabled {
+  background: var(--l2);
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+.row-action.primary {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+/* 表格行：三层信息（标题 / 元信息 / 标签），行高放宽 */
+.products-table tbody td {
+  height: auto;
+  padding: 10px 16px;
+  vertical-align: middle;
+}
+.product-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.product-copy strong {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 18px;
+}
+.product-meta {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.product-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.product-chips em {
+  font-style: normal;
+  font-size: 11px;
+  line-height: 17px;
+  padding: 0 6px;
+  border-radius: 3px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.product-chips em.muted {
+  background: var(--l2);
+  color: var(--ink-2);
+}
+.products-table tbody tr.selected {
+  background: var(--brand-soft);
+}
+.products-table tbody tr.selected td:first-child {
+  box-shadow: inset 2px 0 0 var(--brand);
+}
+.products-table .price {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.products-table .price span {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.cell-detail {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* 表头与内容对齐：同列同左缘、数值列右对齐、统一垂直居中 */
+.products-table thead th,
+.products-table tbody td {
+  vertical-align: middle;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.products-table thead th {
+  height: 36px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-align: left;
+}
+.products-table .col-price,
+.products-table thead th.col-price,
+.products-table tbody td.col-price {
+  text-align: right;
+}
+.products-table .col-actions,
+.products-table thead th.col-actions,
+.products-table tbody td.col-actions {
+  text-align: right;
+}
+.products-table .col-status,
+.products-table thead th.col-status,
+.products-table tbody td.col-status {
+  text-align: left;
+}
+.products-table thead th.check-cell,
+.products-table tbody td.check-cell {
+  width: 44px;
+  padding-right: 0;
+}
+
+/* 商品列：表头与标题文字同左缘（跳过得票缩略图），操作列与按钮同右缘 */
+.products-table thead th.col-product,
+.products-table tbody td.col-product {
+  padding-left: 16px;
+}
+.products-table thead th.col-product {
+  padding-left: 82px;
+}
+.products-table thead th.col-actions,
+.products-table tbody td.col-actions {
+  padding-right: 16px;
+}
+.products-table .row-actions {
+  justify-content: flex-end;
+}
+
+/* 商品列表头回到列左缘，与缩略图同一起点（82px 试过会偏到标题中间，取消） */
+.products-table thead th.col-product {
+  padding-left: 16px;
+}
+
+/* 表头与内容同一套列盒：勾选列同宽、其余列同内距，保证左右缘一致 */
+.products-table thead th.check-cell,
+.products-table tbody td.check-cell {
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  padding-left: 16px;
+  padding-right: 0;
+  text-align: left;
+}
+.products-table tbody td.check-cell input,
+.products-table thead th.check-cell input {
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* 列宽固定，表头与内容按同一套列盒对齐（不再依赖内容推算） */
+.products-table {
+  table-layout: fixed;
+}
+.products-table col.col-check {
+  width: 60px;
+}
+.products-table col.col-price {
+  width: 220px;
+}
+.products-table col.col-status {
+  width: 240px;
+}
+.products-table col.col-actions {
+  width: 220px;
+}
+.products-table thead th,
+.products-table tbody td {
+  box-sizing: border-box;
+}
+
+/* 设置页 v2：左名称右控件，一项一行，去掉外层卡片，组标题 + 组间留白 */
+.settings{display:block;max-width:860px}
+.setting-group{margin-top:36px}
+.setting-group:first-of-type{margin-top:8px}
+.setting-group>h3{margin:0 0 4px;font-size:12px;font-weight:500;letter-spacing:.04em;color:var(--ink-3)}
+.setting-row{display:grid;grid-template-columns:minmax(180px,220px) minmax(0,1fr);align-items:center;gap:4px 24px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.setting-row:last-child{border-bottom:0}
+.setting-name{font-size:13px;color:var(--ink);line-height:1.5}
+.setting-name small{display:block;margin-top:2px;font-size:12px;color:var(--ink-3);line-height:1.5}
+.setting-value{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;text-align:right;font-size:13px;color:var(--ink-2)}
+.setting-value .button{flex:none}
+.setting-value .sep{margin:0 4px;color:var(--rule)}
+.setting-value .quiet-note{text-align:right}
+@media (max-width:720px){
+  .setting-row{grid-template-columns:minmax(0,1fr);gap:8px}
+  .setting-value{justify-content:flex-start;text-align:left}
+}
+.setting-name small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* 设置页：宽屏适配（最大化后不再挤在左侧一条） */
+@media (min-width:1200px){
+  .settings{max-width:none}
+  .setting-row{grid-template-columns:minmax(220px,280px) minmax(0,1fr);padding:14px 0}
+  .setting-group{margin-top:40px}
+  .setting-name{font-size:13px}
+}
+@media (min-width:1600px){
+  .setting-row{grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:4px 40px}
+}
+
+/* 设置页：全屏适配——内容列定宽居中，名称与控件不会被拉到屏幕两端 */
+.settings{max-width:1080px;width:100%;margin:0 auto}
+@media (min-width:1200px){
+  .settings{max-width:1080px}
+  .setting-row{grid-template-columns:240px minmax(0,1fr);padding:14px 0}
+}
+@media (min-width:1600px){
+  .settings{max-width:1120px}
+  .setting-row{grid-template-columns:260px minmax(0,1fr);gap:4px 40px}
+}
+
+/* 设置页：组与组之间加分割线（行间细线更轻，组间线更实） */
+.setting-row{border-bottom:1px solid var(--rule-soft, #eceff3)}
+.setting-group + .setting-group{
+  margin-top:36px;
+  padding-top:26px;
+  border-top:1px solid var(--rule);
+}
+@media (min-width:1200px){
+  .setting-group + .setting-group{margin-top:38px;padding-top:26px}
+}
+
+/* 设置页：去掉所有横线，靠留白与组标题分层（线条太多会显得杂乱） */
+.setting-row{border-bottom:0;padding:10px 0}
+.setting-group + .setting-group{
+  margin-top:48px;
+  padding-top:0;
+  border-top:0;
+}
+.setting-group > h3{
+  margin:0 0 6px;
+  font-size:12px;
+  letter-spacing:.08em;
+}
+.setting-group:first-of-type > h3{margin-top:0}
+@media (min-width:1200px){
+  .setting-group + .setting-group{margin-top:56px;padding-top:0}
+  .setting-row{padding:12px 0}
+}
+
+/* 设置页：iOS「内嵌分组列表」——圆角卡片 + 组标题在卡外 + 行内分割线 */
+.settings{max-width:780px;width:100%;margin:0 auto}
+.setting-group{
+  position:relative;
+  margin-top:34px;
+  padding:2px 0;
+  background:var(--l1);
+  border:1px solid var(--rule);
+  border-radius:10px;
+}
+.setting-group:first-of-type{margin-top:30px}
+.setting-group > h3{
+  position:absolute;
+  top:-22px;
+  left:4px;
+  margin:0;
+  padding:0;
+  font-size:12px;
+  font-weight:400;
+  letter-spacing:0;
+  color:var(--ink-3);
+}
+.setting-row{
+  display:grid;
+  grid-template-columns:minmax(150px,auto) minmax(0,1fr);
+  align-items:center;
+  gap:2px 16px;
+  min-height:46px;
+  padding:6px 16px;
+  border-bottom:1px solid var(--rule-soft, #eceff3);
+}
+.setting-row:last-child{border-bottom:0}
+.setting-name{font-size:13px;color:var(--ink)}
+.setting-name small{display:block;margin-top:1px;font-size:11px;color:var(--ink-3)}
+.setting-value{justify-content:flex-end;gap:6px;text-align:right;font-size:13px;color:var(--ink-2)}
+
+/* 视觉中心：标题区降噪、概览数字当锚点、步骤条退到背景 */
+.products-page .page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+.products-page .page-heading h1 {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+}
+.products-page .page-heading p {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.summary-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+  margin: 0;
+  flex: none;
+}
+.summary-strip div {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+.summary-strip dt {
+  font-size: 12px;
+  color: var(--ink-3);
+  order: 2;
+}
+.summary-strip dd {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  order: 1;
+}
+.summary-strip div:nth-child(2) dd {
+  color: var(--ok);
+}
+.summary-strip div:nth-child(3) dd {
+  color: var(--warn);
+}
+.products-page .steps {
+  padding: 0 0 8px;
+  margin-bottom: 12px;
+  background: transparent;
+}
+.products-page .steps li {
+  font-size: 12px;
+  color: var(--ink-3);
+  gap: 6px;
+}
+.products-page .steps li > span {
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  color: var(--ink-3);
+  background: var(--l1);
+}
+.products-page .steps li.current {
+  color: var(--ink);
+  font-weight: 500;
+}
+.products-page .steps li.current > span {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+/* 步骤条收成紧凑一行，不再横贯整页抢中心 */
+.products-page .steps {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.products-page .steps li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin: 0 6px 0 0;
+}
+.products-page .steps .step-line {
+  flex: none;
+  width: 28px;
+  height: 1px;
+  margin: 0 10px 0 0;
+  background: var(--rule);
+}
+.summary-strip div:nth-child(1) dd,
+.summary-strip div:nth-child(2) dd,
+.summary-strip div:nth-child(3) dd {
+  letter-spacing: -0.4px;
+}
+
+/* 商品列表的「店铺」列与行内/批量下拉 */
+col.col-shop{width:170px}
+.shop-select{height:30px;max-width:100%;padding:0 8px;border:1px solid var(--rule);border-radius:4px;background:var(--l1);color:var(--ink);font-size:12px}
+.shop-select:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.bulk-shop{flex:none}
+
+/* 店铺绑定：胶囊式下拉，已绑定用品牌淡底 + 图标，未指定用虚线灰 */
+col.col-shop{width:200px}
+.shop-cell{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:28px;padding:0 8px 0 7px;border:1px solid var(--rule);border-radius:14px;background:var(--l1);color:var(--ink-3)}
+.shop-cell svg{flex:none;opacity:.75}
+.shop-cell.bound{background:var(--brand-soft);border-color:transparent;color:var(--brand)}
+.shop-cell.unbound{border-style:dashed}
+.shop-cell select,.shop-select{border:0;background:transparent;height:26px;padding:0 18px 0 0;font-size:12px;color:inherit;max-width:132px;text-overflow:ellipsis;appearance:none;-webkit-appearance:none;background-repeat:no-repeat;background-position:right center;background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23626d7e' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.shop-cell.bound select{color:var(--brand);background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%233154bd' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.shop-cell select:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:12px}
+.bulk-shop{height:28px;padding:0 26px 0 10px;border:1px dashed var(--rule);border-radius:14px;color:var(--ink-2);font-size:12px;background-color:var(--l1)}
+
+/* 店铺列收窄一点，把宽度还给商品标题；状态与操作列同步微调 */
+col.col-shop{width:190px}
+col.col-status{width:220px}
+col.col-actions{width:200px}
+col.col-price{width:210px}
+
+/* 窄窗口：表格改为横向滚动，列内文字不再互相挤穿 */
+.library .table-scroll{overflow-x:auto}
+.products-table{min-width:900px}
+.product-copy,.product-meta,.product-chips{min-width:0}
+.product-copy strong{word-break:break-word}
+.product-chips{display:flex;flex-wrap:wrap;gap:4px}
+.product-chips em{white-space:nowrap}
+.shop-cell{max-width:100%;overflow:hidden}
+.shop-cell select{min-width:0}
+.pick-bar{flex-wrap:wrap;gap:8px}
+.filters{flex-wrap:wrap}
+.filters .search{margin-left:auto}
+@media (max-width:1100px){
+  .products-table{min-width:820px}
+  .col-shop .shop-cell select{max-width:104px}
+}
+
+/* 列宽总和 + 商品列最小宽度：窄窗口靠横向滚动，绝不压缩商品列 */
+.products-table{min-width:1240px}
+.col-product,.col-product strong,.col-product .product-meta{min-width:320px}
+.col-product{width:auto}
+td.col-product,th.col-product{overflow:hidden}
+
+/* 类目选择：弹层 + 分级下拉 */
+.category-open{margin-top:2px}
+.category-overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:#1a223066}
+.category-dialog{width:min(720px,92vw);max-height:80vh;overflow:auto;background:var(--l1);border:1px solid var(--rule);border-radius:10px;box-shadow:0 16px 48px rgba(22,24,29,.18);padding:16px}
+.category-dialog header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}
+.category-dialog h3{font-size:15px;font-weight:500;margin:0}
+.category-levels{display:grid;gap:8px}
+.category-level{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:12px}
+.category-level>span{font-size:12px;color:var(--ink-3)}
+.category-level select{height:32px;padding:0 8px;border:1px solid var(--rule);border-radius:6px;background:var(--l1);font-size:13px}
+.category-picked{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 12px;border-radius:6px;background:var(--l2);font-size:13px;flex-wrap:wrap}
+.category-picked code{font-size:12px;color:var(--ink-3)}
+.category-dialog footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}

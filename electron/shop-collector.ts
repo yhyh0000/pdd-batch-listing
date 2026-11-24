@@ -519,17 +519,48 @@ export class ShopCollector {
     await this.bridge.call('click', { selector: ref });
   }
   private async salePage() {
-    return this.bridge.wait(
-      async () => {
-        this.guard();
-        const raw = await this.bridge.eval<any>(`(${readSalePage.toString()})()`, 6000);
-        return raw?.ready && raw?.active && raw?.paginationKnown && (raw.goods?.length || raw.empty)
-          ? raw
-          : false;
-      },
-      15000,
-      '在售商品列表或分页尚未加载完整，请核对浏览器页面',
-    );
+    // 后台列表是懒加载的：直接等常常停在"分页未知/行数不够"。这里先等一次，
+    // 失败就把列表滚到底（顺带点掉"加载更多"），再等一次；仍失败才报错，
+    // 报错时带上到底缺了哪一项，方便运营照着核对页面。
+    const probe = async () => {
+      this.guard();
+      const raw = await this.bridge.eval<any>(`(${readSalePage.toString()})()`, 6000);
+      return raw?.ready && raw?.active && raw?.paginationKnown && (raw.goods?.length || raw.empty)
+        ? raw
+        : false;
+    };
+    const nudge = `(() => {
+      const box=[...document.querySelectorAll('div,section')]
+        .filter(e=>e.getClientRects().length&&e.scrollHeight>e.clientHeight+80&&/商品|在售/.test(e.innerText||''))
+        .sort((a,b)=>b.scrollHeight-a.scrollHeight)[0];
+      if(box) box.scrollTop=box.scrollHeight;
+      const more=[...document.querySelectorAll('button,a,span,div')]
+        .filter(e=>e.getClientRects().length&&e.children.length===0&&/^(加载更多|查看更多|下一页)$/.test((e.textContent||'').trim()))[0];
+      if(more) more.click();
+      window.scrollTo(0,document.body.scrollHeight);
+      return true;
+    })()`;
+    try {
+      return await this.bridge.wait(probe, 15000);
+    } catch {
+      this.guard();
+      await this.bridge.eval(nudge, 5000).catch(() => false);
+      try {
+        return await this.bridge.wait(probe, 15000);
+      } catch {
+        const raw = await this.bridge.eval<any>(`(${readSalePage.toString()})()`, 6000).catch(() => null);
+        const missing = !raw
+          ? '页面脚本没有返回结果'
+          : !raw.ready
+            ? '列表容器还没渲染'
+            : !raw.active
+              ? '没有停在「在售」页签'
+              : !raw.paginationKnown
+                ? '没识别到分页控件（总条数/页码）'
+                : '列表还是 0 行';
+        throw Error(`在售商品列表尚未加载完整：${missing}。请核对浏览器页面（需要停在“在售”列表、能看到分页），再重试`);
+      }
+    }
   }
   async list(shop: Shop) {
     if (normalizePlatform(shop.platform) !== 'pdd') throw Error('当前仅支持采集拼多多店铺');

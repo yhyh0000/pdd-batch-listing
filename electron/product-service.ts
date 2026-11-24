@@ -35,7 +35,11 @@ export function sanitizeProducts(store: Store, input: unknown): Product[] {
         throw new Error('商品字段内容不正确');
       p[key] = raw[key].trim();
     }
-    if (!p.code || p.code.length > 100 || codes.has(p.code))
+    // 店铺绑定是可选的：老资料没有这个字段，保存时不能被当成“内容不正确”。
+    if (raw.shopId != null) {
+      if (typeof raw.shopId !== 'string' || raw.shopId.length > 100) throw new Error('店铺绑定不正确');
+      p.shopId = raw.shopId.trim() || undefined;
+    }    if (!p.code || p.code.length > 100 || codes.has(p.code))
       throw new Error('商品编码须填写且不能重复');
     codes.add(p.code);
     const previous = store.all<Product>('products').find((existing) => existing.id === p.id);

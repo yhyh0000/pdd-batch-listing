@@ -19,7 +19,7 @@ import { Worker } from 'node:worker_threads';
 import { Store } from './store';
 import type { ImportFailure } from './importer';
 import { prepareTasks, TaskRunner } from './task-runner';
-import { pickShop } from './shop-pick';
+import { pickProductShop } from './shop-pick';
 import { PlatformRegistry } from './platforms/registry';
 import { ShopLoginError } from './platforms/shop-login';
 import { ExecutionError } from './execution';
@@ -287,9 +287,9 @@ else {
         return decrypted.result;
       };
       const platforms = new PlatformRegistry(app.getPath('userData'), decryptShopPassword);
-      /** 资料上记的店铺 → 店铺记录；解析规则见 pickShop（支持店铺 ID，名称归一化，同名报歧义）。 */
+      /** 资料上记的店铺 → 店铺记录；绑定过店铺 ID 就用它，否则按名称解析（见 pickShop）。 */
       const productShop = (product: Product): Shop =>
-        pickShop(store.all<Shop>('shops'), product.expectedShop);
+        pickProductShop(store.all<Shop>('shops'), product);
       runner = new TaskRunner(
         store,
         app.getPath('userData'),
@@ -692,7 +692,18 @@ else {
         },
         true,
       );
-      handler(
+      handler('categories:query', async (input: unknown) => {
+        const { kind, id } = (input || {}) as { kind?: string; id?: number };
+        if (kind !== 'roots' && kind !== 'children' && kind !== 'detail')
+          throw new Error('类目查询参数不正确');
+        const shop = store.all<Shop>('shops').find((item) => item.platform === 'pdd');
+        const target =
+          shop || ({ id: 'pdd-default', name: '拼多多', account: '', platform: 'pdd' } as Shop);
+        await requireBrowser('pdd');
+        const read = platforms.forShop(target).categories;
+        if (!read) throw new Error('当前平台不支持类目树');
+        return read(kind, id);
+      });      handler(
         'shops:install-templates',
         async (productId: unknown) => {
           if (typeof productId !== 'string' || !productId) throw new Error('商品参数不正确');

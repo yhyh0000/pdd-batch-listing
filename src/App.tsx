@@ -316,24 +316,27 @@ export default function App() {
           </button>
         ))}
       </div>
-      <div className="button-group">
+      <div className="template-links">
         <button
-          className="button"
+          type="button"
+          className="link-button"
           disabled={!!savingTemplate || loading || !!fatal}
           aria-busy={savingTemplate === 'blank'}
           onClick={() => download('blank')}
         >
-          <Download size={16} aria-hidden="true" />
-          {savingTemplate === 'blank' ? '正在保存模板…' : '下载 Excel 模板'}
+          {savingTemplate === 'blank' ? '正在保存…' : '下载 Excel 模板'}
         </button>
         <button
-          className="button"
+          type="button"
+          className="link-button"
           disabled={!!savingTemplate || loading || !!fatal}
           aria-busy={savingTemplate === 'example'}
           onClick={() => download('example')}
         >
-          <Download size={16} aria-hidden="true" />
-          {savingTemplate === 'example' ? '正在保存示例…' : '下载填写示例'}
+          {savingTemplate === 'example' ? '正在保存…' : '下载填写示例'}
+        </button>
+        <button type="button" className="link-button" onClick={() => setHelp(true)}>
+          填写说明
         </button>
       </div>
     </div>
@@ -345,7 +348,6 @@ export default function App() {
         productIds: chosen.map((p) => p.id),
       });
       acceptWorkspace(prepared.workspace);
-      setPicking(false);
       setSelected(new Set());
       openProgress(prepared.taskIds);
       try {
@@ -482,20 +484,30 @@ export default function App() {
             </div>
           ) : null}
           {page === 'products' ? (
-            <>
+            <div className="products-page">
               <div className="page-heading">
                 <div>
                   <h1>商品资料</h1>
                   <p>导入、确认、保存，然后选择你的店铺。</p>
                 </div>
-                <button className="button" onClick={() => setHelp(true)}>
-                  <Download size={16} />
-                  模板下载
-                </button>
+                <dl className="summary-strip" aria-label="商品概况">
+                  <div>
+                    <dt>本机商品</dt>
+                    <dd>{data.products.length}</dd>
+                  </div>
+                  <div>
+                    <dt>可上架</dt>
+                    <dd>{readyCount}</dd>
+                  </div>
+                  <div>
+                    <dt>待处理</dt>
+                    <dd>{Math.max(0, data.products.length - readyCount)}</dd>
+                  </div>
+                </dl>
               </div>
               {progress.tasks.length ? (
                 <section className="execution-banner" aria-label="商品执行进度入口">
-                  <div>
+                  <p className="execution-line">
                     <strong>
                       {progress.active
                         ? '商品正在执行'
@@ -503,12 +515,12 @@ export default function App() {
                           ? '本次草稿已保存'
                           : '本次执行需要继续处理'}
                     </strong>
-                    <p>
+                    <span>
                       {progress.tasks[0].shopName} · 已保存 {progress.completed} /{' '}
                       {progress.tasks.length} 件
                       {progress.active ? ` · ${progress.active.phase || '正在执行'}` : ''}
-                    </p>
-                  </div>
+                    </span>
+                  </p>
                   <button className="button" onClick={() => setProgressOpen(true)}>
                     <ClipboardList size={16} />
                     查看执行进度
@@ -527,7 +539,10 @@ export default function App() {
                   </li>
                 ))}
               </ol>
-              <section className={`import-panel ${busy ? 'busy' : ''}`} aria-label="导入商品资料">
+              <section
+                className={`import-panel ${data.products.length ? 'is-compact' : ''} ${busy ? 'busy' : ''}`}
+                aria-label="导入商品资料"
+              >
                 <div className="import-header">
                   <span className="import-symbol">
                     <Upload size={23} />
@@ -590,6 +605,23 @@ export default function App() {
                     </h2>
                     <p>核对资料后，勾选商品并选择目标店铺。</p>
                   </div>
+                </div>
+                <div className="filters" aria-label="商品筛选">
+                  {[
+                    ['all', '全部商品', data.products.length],
+                    ['ready', '本机检查通过', readyCount],
+                    ['incomplete', '待补充', data.products.length - readyCount],
+                  ].map(([key, label, n]) => (
+                    <button
+                      key={key}
+                      aria-pressed={filter === key}
+                      className={filter === key ? 'active' : ''}
+                      onClick={() => setFilter(String(key))}
+                    >
+                      {label}
+                      <span>{n}</span>
+                    </button>
+                  ))}
                   <label className="search">
                     <Search size={17} />
                     <input
@@ -609,26 +641,76 @@ export default function App() {
                     ) : null}
                   </label>
                 </div>
-                <div className="filters" aria-label="商品筛选">
-                  {[
-                    ['all', '全部商品', data.products.length],
-                    ['ready', '本机检查通过', readyCount],
-                    ['incomplete', '待补充', data.products.length - readyCount],
-                  ].map(([key, label, n]) => (
+                {rows.length ? (
+                  <div className={`pick-bar${chosen.length ? ' active' : ''}`}>
+                    <div>
+                      <strong>已选择 {chosen.length} 件商品</strong>
+                      <span>
+                        {chosen.length
+                          ? '选好目标店铺后，在已连接的浏览器里填写并保存草稿。'
+                          : '勾选本机检查通过的商品后，继续下一步。'}
+                      </span>
+                    </div>
+                    {chosen.length ? (
+                      <select
+                        className="shop-select bulk-shop"
+                        aria-label="给已选商品批量设置目标店铺"
+                        value=""
+                        onChange={async (e) => {
+                          const value = e.target.value;
+                          if (!value) return;
+                          const records = data.products
+                            .filter((p) => chosen.some((item) => item.id === p.id))
+                            .map((p) => ({ ...p, shopId: value }));
+                          try {
+                            await window.desktop.saveProducts(records);
+                            await refresh();
+                            setNotice(`已把 ${records.length} 件商品绑定到该店铺`);
+                          } catch (err) {
+                            setNotice((err as Error).message);
+                          }
+                        }}
+                      >
+                        <option value="">批量设置店铺…</option>
+                        {data.shops.map((shop) => (
+                          <option key={shop.id} value={shop.id}>
+                            {shop.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
                     <button
-                      key={key}
-                      aria-pressed={filter === key}
-                      className={filter === key ? 'active' : ''}
-                      onClick={() => setFilter(String(key))}
+                      className="button primary"
+                      disabled={!chosen.length || running}
+                      onClick={() => {
+                        const bound = Array.from(new Set(chosen.map((p) => p.shopId || '')));
+                        // 选中的商品都绑定在同一家店上，就直接按绑定执行，不再问一次店铺。
+                        if (bound.length === 1 && bound[0]) {
+                          if (!running) void startProducts(bound[0]);
+                          return;
+                        }
+                        setPicking(true);
+                      }}
                     >
-                      {label}
-                      <span>{n}</span>
+                      <Store size={16} />
+                      {(() => {
+                        const bound = Array.from(new Set(chosen.map((p) => p.shopId || '')));
+                        return bound.length === 1 && bound[0] ? '按绑定的店铺执行' : '选择店铺';
+                      })()}
                     </button>
-                  ))}
-                </div>
+                  </div>
+                ) : null}
                 {rows.length ? (
                   <div className="table-scroll">
                     <table className="products-table">
+                      <colgroup>
+                        <col className="col-check" />
+                        <col />
+                        <col className="col-price" />
+                        <col className="col-shop" />
+                        <col className="col-status" />
+                        <col className="col-actions" />
+                      </colgroup>
                       <thead>
                         <tr>
                           <th className="check-cell">
@@ -651,10 +733,11 @@ export default function App() {
                               }}
                             />
                           </th>
-                          <th>商品</th>
-                          <th>规格与价格</th>
-                          <th>资料状态</th>
-                          <th className="align-right">操作</th>
+                          <th className="col-product">商品</th>
+                          <th className="col-price">规格与价格</th>
+                          <th className="col-shop">店铺</th>
+                          <th className="col-status">资料状态</th>
+                          <th className="col-actions">操作</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -685,16 +768,36 @@ export default function App() {
                                       <Boxes size={21} />
                                     </span>
                                   )}
-                                  <div>
-                                    <strong>{p.title || '商品标题待补充'}</strong>
-                                    <span>{p.code}</span>
+                                  <div className="product-copy">
+                                    <strong title={p.title}>{p.title || '商品标题待补充'}</strong>
+                                    <span className="product-meta">
+                                      {`编码 ${p.code}`}
+                                      {p.brand ? ` · ${p.brand}` : ''}
+                                      {p.category
+                                        ? ` · ${p.category.split('>').pop()?.trim() || ''}`
+                                        : ''}
+                                    </span>
+                                    {p.install || isTaobaoProduct(p) ? (
+                                      <span className="product-chips">
+                                        {p.install ? <em>到店安装</em> : null}
+                                        {p.install ? (
+                                          <em className="muted">
+                                            {p.install.delivery === 'home' ? '配送到家' : '配送到店'}
+                                          </em>
+                                        ) : null}
+                                        {isTaobaoProduct(p) ? <em className="muted">淘宝</em> : null}
+                                      </span>
+                                    ) : null}
                                   </div>
                                 </div>
                               </td>
-                              <td>
+                              <td className="col-price">
                                 <div className="price">
                                   {lowestPrice(p)}
-                                  <span>{p.skus.length} 个规格</span>
+                                  <span>
+                                    {p.skus.length} 个规格
+                                    {p.reference ? ` · 参考价 ${p.reference}` : ''}
+                                  </span>
                                 </div>
                               </td>
                               <td>
@@ -709,20 +812,49 @@ export default function App() {
                                   <span className="status neutral">淘宝暂未开放</span>
                                 )}
                                 <span className="cell-detail">
-                                  {issues.length
-                                    ? `${issues.length} 项待处理`
-                                    : `${p.main.length} 张主图 · ${p.detail.length} 张详情图`}
+                                  {issues.length ? `${issues.length} 项待处理 · ` : ''}
+                                  {`${p.main.length} 主图 · ${p.detail.length} 详情`}
+                                  {p.install
+                                    ? ` · 轮辋 ${p.skus.filter((s) => s.rim).length}/${p.skus.length}`
+                                    : ''}
                                 </span>
                               </td>
-                              <td className="align-right">
+                              <td className="col-shop">
+                                <span className={`shop-cell ${p.shopId ? 'bound' : 'unbound'}`}>
+                                  <Store size={14} aria-hidden="true" />
+                                <select
+                                  className="shop-select"
+                                  aria-label={`${p.title || p.code} 的目标店铺`}
+                                  value={p.shopId || ''}
+                                  onChange={async (e) => {
+                                    const value = e.target.value;
+                                    try {
+                                      await window.desktop.saveProducts([{ ...p, shopId: value }]);
+                                      await refresh();
+                                    } catch (err) {
+                                      setNotice((err as Error).message);
+                                    }
+                                  }}
+                                >
+                                  <option value="">未指定</option>
+                                  {data.shops.map((shop) => (
+                                    <option key={shop.id} value={shop.id}>
+                                      {shop.name}
+                                    </option>
+                                  ))}
+                                </select>
+                                </span>
+                              </td>
+                              <td className="col-actions">
+                                <div className="row-actions">
                                 <button
-                                  className="text-button"
+                                  className="row-action primary"
                                   onClick={() => setPending([structuredClone(p)])}
                                 >
                                   编辑资料
                                 </button>
                                 <button
-                                  className="text-button"
+                                  className="row-action"
                                   disabled={!!exportingId}
                                   onClick={async () => {
                                     setExportingId(p.id);
@@ -740,6 +872,7 @@ export default function App() {
                                 >
                                   {exportingId === p.id ? '正在导出…' : '导出含图 Excel'}
                                 </button>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -784,25 +917,7 @@ export default function App() {
                   </div>
                 ) : null}
               </section>
-              <div className={`batch-bar${chosen.length ? ' active' : ''}`}>
-                <div>
-                  <strong>已选择 {chosen.length} 件商品</strong>
-                  <span>
-                    {chosen.length
-                      ? '选择目标店铺，在已连接浏览器填写并保存草稿。'
-                      : '勾选本机检查通过的商品后，继续下一步。'}
-                  </span>
-                </div>
-                <button
-                  className="button primary"
-                  disabled={!chosen.length || running}
-                  onClick={() => setPicking(true)}
-                >
-                  <Store size={16} />
-                  选择店铺
-                </button>
-              </div>
-            </>
+            </div>
           ) : null}
           {page === 'settings' ? (
             <Settings

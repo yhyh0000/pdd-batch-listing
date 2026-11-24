@@ -54,7 +54,10 @@ export class BrowserBridge {
   private url = 'http://127.0.0.1:10086';
   // The daemon outlives browser/App restarts. Keep one session for this adapter's
   // entire queue, without inheriting old tab IDs from an earlier App process.
-  private readonly session = `goods-workspace-${randomUUID()}`;
+  // 诊断用：设置 GOODS_BRIDGE_SESSION 可把多个进程绑到同一个桥接会话上，
+  // 这样 network 录制能覆盖到别的进程发起的请求。
+  private readonly session =
+    process.env.GOODS_BRIDGE_SESSION?.trim() || `goods-workspace-${randomUUID()}`;
   async call<T = unknown>(
     action: string,
     args: Record<string, unknown> = {},

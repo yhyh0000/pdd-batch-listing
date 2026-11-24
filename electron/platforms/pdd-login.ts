@@ -1,5 +1,6 @@
 import type { BrowserBridge } from '../browser-bridge';
 import { ExecutionError } from '../execution';
+import { accountKind } from '../../src/shop-account';
 import { ShopLoginError } from './shop-login';
 import {
   matchesPddIdentity,
@@ -279,13 +280,37 @@ export class PddLogin {
       if (confirmed)
         await this.step('退出当前账号', async () => {
           await this.trusted();
+          // 账号区可能是折叠的：先找可见的「退出当前账号」，找不到就把账号菜单点开再找。
+          // 原来要求「恰好一个」，遇到后台渲染出多个同名节点或菜单收起时会直接失败。
           const clicked = await this.bridge.eval<boolean>(
-            `(() => {
+            `(async () => {
           if(location.origin!=='${ORIGIN}')return false;
-          const es=[...document.querySelectorAll('header *,[role=banner] *')].filter(e=>e.children.length===0&&e.getClientRects().length&&e.textContent.trim()==='退出当前账号');
-          if(es.length!==1)return false;es[0].click();return true;
+          const account=${JSON.stringify(shop.account)};
+          const leaves=()=>[...document.querySelectorAll('header *,[role=banner] *')]
+            .filter(e=>e.children.length===0&&e.getClientRects().length);
+          const logoutNodes=()=>leaves().filter(e=>e.textContent.trim()==='退出当前账号');
+          const pickTopMost=(nodes)=>nodes.sort((a,b)=>b.getBoundingClientRect().top-a.getBoundingClientRect().top)[0];
+          let nodes=logoutNodes();
+          if(!nodes.length){
+            const candidates=leaves().filter(e=>{
+              const text=e.textContent.trim();
+              if(!text||text.length>40)return false;
+              return text.includes(':')||text.includes('：')||(account&&account.includes(text));
+            });
+            const trigger=pickTopMost(candidates)||leaves().find(e=>e.textContent.trim()==='退出当前账号');
+            if(trigger){
+              const target=trigger.closest('button,[role=button],a')||trigger.parentElement||trigger;
+              target.dispatchEvent(new MouseEvent('mouseover',{bubbles:true}));
+              target.click();
+              await new Promise(r=>setTimeout(r,700));
+              nodes=logoutNodes();
+            }
+          }
+          if(!nodes.length)return false;
+          pickTopMost(nodes).click();
+          return true;
         })()`,
-            5000,
+            8000,
           );
           if (!clicked)
             throw new ShopLoginError('failed', '未能唯一找到退出账号入口，请在已连接的浏览器核对');
@@ -318,6 +343,14 @@ export class PddLogin {
             throw error;
           }
         });
+      // 手机号只能走「手机号登录」（还要短信验证码），拼多多的「账号登录」不收手机号；
+      // 早点停下并说清楚，比让后台回一句「账号密码不匹配。子账号请用账号名登录」有用。
+      const mainPart = shop.account.split(/[:：]/)[0].trim();
+      if (accountKind(mainPart || shop.account) === 'mobile')
+        throw new ShopLoginError(
+          'verification_required',
+          `保存的登录账号「${mainPart || shop.account}」是手机号：拼多多的「账号登录」不支持手机号，子账号也只能用「会员名:子账号」。请在浏览器里用手机号手动登录（需要短信验证码），登录成功后点「继续」；或把店铺管理里的账号改成后台账号区冒号前的会员名。`,
+        );
       await this.step('切换账号密码登录', async () => {
         await this.trusted();
         await this.poll((s) => s.loginPage || s.form, '退出后未进入登录页');

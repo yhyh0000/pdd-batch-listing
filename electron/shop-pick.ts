@@ -40,3 +40,13 @@ export function pickShop(shops: Shop[], expected: string): Shop {
       : '还没有添加店铺，请先在店铺管理里添加',
   );
 }
+
+/** 商品上绑定的店铺优先（ID 稳定，店铺改名不受影响）；没绑定才按资料里的名称解析。 */
+export function pickProductShop(
+  shops: Shop[],
+  product: { shopId?: string; expectedShop: string },
+): Shop {
+  const bound = product.shopId ? shops.find((shop) => shop.id === product.shopId) : undefined;
+  if (bound) return bound;
+  return pickShop(shops, product.expectedShop);
+}
